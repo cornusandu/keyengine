@@ -6,6 +6,7 @@ import os
 import sys
 import colorama
 from typing import Any
+from .menus import flush_stdin
 
 class Console:
     def __init__(self):
@@ -25,8 +26,9 @@ class Console:
         self.lock.release()
 
     def input(self, prompt: str) -> str:
+        self.stdin = prompt
         kd.start_input(True)
-        while not keyboard.read_event().name != 'enter':
+        while keyboard.read_event().name != 'enter':
             with self.lock:
                 self.stdin = prompt + kd.INPUT
             time.sleep(0.05)
@@ -34,6 +36,7 @@ class Console:
         self.lock.acquire()
         self.stdin = ''
         self.print(str(prompt) + str(val))
+        flush_stdin()
         self.lock.release()
         return val
 
@@ -57,8 +60,13 @@ class Console:
             self._update()
 
     def _update(self):
+        if self.s.is_set(): return
         self.lock.acquire()
-        os.system('cls || clear')
+        os.system('cls')
+        if not hasattr(self, 'outputs'):
+            self.s.set()
+            self.lock.release()
+            return
         if len(self.outputs) > 100:
             self.outputs = self.outputs[69:] # Stop the outputs from being longer than 100.
         for (t, v) in self.outputs:
@@ -71,12 +79,13 @@ class Console:
             else:
                 sys.stdout.write(f'{v}\n')
 
-        sys.stdout.write(f"\n{colorama.Style.BRIGHT}{self.stdin}{colorama.Style.RESET_ALL}")
+        sys.stdout.write(f"{colorama.Style.BRIGHT}{self.stdin}{colorama.Style.RESET_ALL}")
         sys.stdout.flush()
         self.lock.release()
 
     def stop(self):
-        del self.outputs
+        if hasattr(self, 'outputs'):
+            del self.outputs
         self.s.set()
 
     def __del__(self):

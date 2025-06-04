@@ -71,10 +71,12 @@ def start_input(backspace_enabled: bool = False):
         nonlocal allowed
         if not event.event_type == "down": return
         if event.name not in allowed:
-            if not (event.name == 'backspace' and ALLOW_BACK):
+            if (not (event.name == 'backspace' and ALLOW_BACK)) and event.name != 'space':
                 return
         if event.name == "backspace" and ALLOW_BACK:
             INPUT = INPUT[:-1]
+        elif event.name == 'space':
+            INPUT += ' '
         else:
             INPUT += event.name
 
