@@ -73,7 +73,7 @@ class Console:
             if t == 'out':
                 sys.stdout.write(f'{v}')
             elif t == 'error':
-                sys.stderr.write(f'{v}\n')
+                sys.stderr.write(f'{colorama.Fore.RED}{v}{colorama.Fore.RESET}\n')
             elif t == 'log':
                 sys.stderr.write(f'{v}\n')
             else:
